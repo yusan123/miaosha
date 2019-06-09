@@ -9,6 +9,8 @@ public class UserDO implements Serializable {
 
     private Byte gender;
 
+    private Integer age;
+
     private String telphone;
 
     private String registerMode;
@@ -39,6 +41,14 @@ public class UserDO implements Serializable {
 
     public void setGender(Byte gender) {
         this.gender = gender;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public String getTelphone() {
