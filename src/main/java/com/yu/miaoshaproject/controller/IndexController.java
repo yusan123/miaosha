@@ -11,18 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Created by Administrator on 2019/6/9.
  */
-@RestController
-public class HelloController {
-
-    @Autowired
-    private UserDOMapper userDOMapper;
+@Controller
+public class IndexController {
 
     @RequestMapping("/")
     public String hello(){
-        UserDO userDO = userDOMapper.selectByPrimaryKey(4444);
-        if(userDO !=null){
-            return userDO.getName();
-        }
-        return "没有查询到数据，请检查数据库配置";
+//        UserDO userDO = userDOMapper.selectByPrimaryKey(4444);
+//        if(userDO !=null){
+//            return userDO.getName();
+//        }
+        return "getopt";
     }
 }

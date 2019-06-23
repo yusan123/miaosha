@@ -31,7 +31,7 @@
       #{age,jdbcType=INTEGER}, #{telphone,jdbcType=VARCHAR}, #{registerMode,jdbcType=VARCHAR}, 
       #{thirdPartyId,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.yu.miaoshaproject.dataobject.UserDO">
+  <insert id="insertSelective" parameterType="com.yu.miaoshaproject.dataobject.UserDO" useGeneratedKeys="true" keyProperty="id">
     insert into user_info
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
