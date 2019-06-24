@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>获取opt验证码</title>
@@ -39,26 +39,24 @@
 
 <body>
 <div class="container">
-    <form class="form-signin" method="post" action="/user/getopt" id="optForm">
-        <h2 class="form-signin-heading">获取opt验证码</h2>
+    <form class="form-signin" method="post" action="/user/login" id="optForm">
+        <h2 class="form-signin-heading">欢迎登录！</h2>
         <label class="sr-only">phone number</label>
-        <input type="tel"  id="telphone" class="form-control" name="telphone" placeholder="请输入您的手机号" required>
+        <input type="tel"  id="telphone" class="form-control" name="telphone" placeholder="请输入您的手机号" required autofocus>
+        <label class="sr-only">password</label>
+        <input type="password"  id="password" class="form-control" name="password" placeholder="请输入密码" required>
         <div class="mt20">
-            <button class="btn btn-primary mybtn" type="button" id="submitbtn">发送短信验证码</button>
+            <button class="btn btn-primary mybtn" type="submit" id="loginbtn">登录</button>
+            <a class="btn btn-primary mybtn" id="register" href="/getoptpage">注册</a>
         </div>
     </form>
 </div>
 </body>
 <script type="text/javascript">
     $(function(){
-
         $("#submitbtn").click(function(){
             //不能一开始就去那input的值，要点了才能去拿
-            var telphone = $("#telphone").val().trim();
-            if(telphone === undefined || telphone===""){
-                alert("未输入手机号")
-                return false;
-            }
+            var telphone = $("#telphone").val();
             $.ajax({
                 url: "/user/getopt",
                 type:"POST",

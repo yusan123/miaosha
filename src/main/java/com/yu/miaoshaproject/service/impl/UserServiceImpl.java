@@ -11,6 +11,7 @@ import com.yu.miaoshaproject.service.UserService;
 import com.yu.miaoshaproject.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,28 +34,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserModel login(String telphone, String encryptPassword) throws BussinessException {
+        UserDO userDO = userDOMapper.selectByTelphone(telphone);
+        if (userDO == null) {
+            throw new BussinessException(EmBussinessError.USER_NOT_EXIST, "用户未注册");
+        }
+        UserPasswordDO userPasswordDO = userPasswordDOMapper.selectByUserId(userDO.getId());
+        if (!StringUtils.equals(encryptPassword, userPasswordDO.getEncryptPassword())) {
+            throw new BussinessException(EmBussinessError.LOGIN_FAILED);
+        }
+        return convertFromDataObjectToModel(userDO, userPasswordDO);
+    }
+
+    @Override
     @Transactional
     public void register(UserModel userModel) throws BussinessException {
-        if(userModel == null||
-            StringUtils.isEmpty(userModel.getName()) ||
-            userModel.getAge()==null ||
-            userModel.getGender() == null ||
-            StringUtils.isEmpty(userModel.getEncrptPassword())){
+        if (userModel == null ||
+                StringUtils.isEmpty(userModel.getName()) ||
+                userModel.getAge() == null ||
+                userModel.getGender() == null ||
+                StringUtils.isEmpty(userModel.getEncrptPassword())) {
             throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR);
         }
 
 
         //通过数据领域对象转为DO对象
         UserDO userDO = convertToUserDO(userModel);
-        userDOMapper.insertSelective(userDO);
+        try {
+            userDOMapper.insertSelective(userDO);
+        } catch (DuplicateKeyException e) {
+            throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR, "该手机号已经注册过了");
+        }
         //插入数据库后可以从插入的DO对象中拿到model的id作为password的外键userid
         userModel.setId(userDO.getId());
         UserPasswordDO userPasswordDO = converToUserPasswordDO(userModel);
         userPasswordDOMapper.insertSelective(userPasswordDO);
     }
 
-    private UserPasswordDO converToUserPasswordDO(UserModel userModel){
-        if(userModel == null){
+    private UserPasswordDO converToUserPasswordDO(UserModel userModel) {
+        if (userModel == null) {
             return null;
         }
         UserPasswordDO userPasswordDO = new UserPasswordDO();
@@ -64,12 +82,12 @@ public class UserServiceImpl implements UserService {
         return userPasswordDO;
     }
 
-    private UserDO convertToUserDO(UserModel userModel){
-        if(userModel == null){
+    private UserDO convertToUserDO(UserModel userModel) {
+        if (userModel == null) {
             return null;
         }
         UserDO userDO = new UserDO();
-        BeanUtils.copyProperties(userModel,userDO);
+        BeanUtils.copyProperties(userModel, userDO);
         return userDO;
     }
 

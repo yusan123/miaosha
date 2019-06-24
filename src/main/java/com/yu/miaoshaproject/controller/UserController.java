@@ -56,6 +56,19 @@ public class UserController {
         return CommonReturnType.create(userVO);
     }
 
+    @PostMapping("/login")
+    @ResponseBody
+    public CommonReturnType login(@RequestParam String telphone,@RequestParam String password) throws BussinessException {
+        if(StringUtils.isEmpty(telphone) || StringUtils.isEmpty(password)){
+            throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR,"不能为空");
+        }
+        String encryptPassword = DigestUtils.md5DigestAsHex(password.getBytes());
+        UserModel userModel = userService.login(telphone,encryptPassword);
+        //将登录的用户信息存入session中
+        httpServletRequest.getSession().setAttribute(String.valueOf(userModel.getId()),userModel);
+        return CommonReturnType.create(convertToViewObject(userModel));
+    }
+
     @RequestMapping(value = "/getopt",method = RequestMethod.POST)
     @ResponseBody
     public Object getOpt(@RequestParam String telphone) throws IOException {

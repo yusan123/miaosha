@@ -17,7 +17,8 @@ public enum EmBussinessError implements CommonError{
 
 
     //2开头的是用户相关错误
-    USER_NOT_EXIST(20001,"用户信息不存在")
+    USER_NOT_EXIST(20001,"用户信息不存在"),
+    LOGIN_FAILED(20002,"登录失败，账号或者密码错误")
     ;
     private int errCode;
     private String errMsg;
