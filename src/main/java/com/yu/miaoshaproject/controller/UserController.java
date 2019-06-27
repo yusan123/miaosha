@@ -10,14 +10,20 @@ import com.yu.miaoshaproject.service.model.UserModel;
 import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.DigestUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 import sun.security.provider.MD5;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.io.IOException;
 import java.util.Random;
 
@@ -25,6 +31,8 @@ import java.util.Random;
  * Created by Administrator on 2019/6/9.
  */
 
+//使用参数校验，这个注解必须要加
+@Validated
 @Controller
 @RequestMapping("/user")
 @CrossOrigin(allowedHeaders = "*",allowCredentials = "true")
@@ -39,9 +47,14 @@ public class UserController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
-    @RequestMapping("/get")
+
+    public final String PHONE_REG = "1[3,5,7,8]\\d{9}";
+
+    @RequestMapping("/get/{id}")
     @ResponseBody
-    public CommonReturnType getUser(@RequestParam("id") Integer id) throws BussinessException {
+    public CommonReturnType getUser(//@NotNull //校验数字不能使用notempty
+                                    @PositiveOrZero //正数或0  @negativeOrZero 负数或0
+                                        @PathVariable("id") Integer id) throws BussinessException {
         //调用服务根据id查询一个用户
         UserModel userModel = userService.getUserById(id);
         //转换成vo对象
@@ -58,10 +71,8 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public CommonReturnType login(@RequestParam String telphone,@RequestParam String password) throws BussinessException {
-        if(StringUtils.isEmpty(telphone) || StringUtils.isEmpty(password)){
-            throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR,"不能为空");
-        }
+    public CommonReturnType login(@RequestParam @Pattern(regexp = PHONE_REG,message = "手机号格式不正确") String telphone,
+                                  @RequestParam @NotBlank(message = "密码不能为空") String password) throws BussinessException {
         String encryptPassword = DigestUtils.md5DigestAsHex(password.getBytes());
         UserModel userModel = userService.login(telphone,encryptPassword);
         //将登录的用户信息存入session中
@@ -69,9 +80,9 @@ public class UserController {
         return CommonReturnType.create(convertToViewObject(userModel));
     }
 
-    @RequestMapping(value = "/getopt",method = RequestMethod.POST)
+    @PostMapping(value = "/getopt")
     @ResponseBody
-    public Object getOpt(@RequestParam String telphone) throws IOException {
+    public Object getOpt(@Pattern(regexp = PHONE_REG,message = "手机号格式不正确")@RequestParam String telphone) throws IOException {
         //生成验证码
         Random random = new Random();
         int code = random.nextInt(89999);
@@ -85,29 +96,32 @@ public class UserController {
         return CommonReturnType.create(null);
     }
 
-    @GetMapping("/showRegister")
-    public String showRegister(){
+    @GetMapping("/showRegister/{telphone}")
+    public String showRegister(@PathVariable @Pattern(regexp = PHONE_REG) String telphone,Model model){
+        model.addAttribute("telphone",telphone);
         return "register";
     }
     //用户注册
     @RequestMapping(value = "/register",method = RequestMethod.POST)
     @ResponseBody
-    public CommonReturnType register(@RequestParam String name,
-                                     @RequestParam Byte gender,
-                                     @RequestParam Integer age,
-                                     @RequestParam String telphone,
-                                     @RequestParam String password,
-                                     @RequestParam String userCode) throws BussinessException {
+    public CommonReturnType register(@NotBlank(message = "姓名不能为空") @RequestParam String name,
+                                     @NotNull(message = "性别不能为空") @RequestParam Byte gender,
+                                     @Min(value = 0L,message = "年龄不能小于0")
+                                         @Max(value = 150L,message = "最大年龄不能超过150")
+                                         @RequestParam Integer age,
+                                     @Pattern(regexp = PHONE_REG,message = "手机号格式不正确") @RequestParam String telphone,
+                                     @NotBlank(message = "密码不能为空") @RequestParam String password,
+                                     @NotBlank(message = "验证码不能为空") @RequestParam String userCode) throws BussinessException {
 
         //验证验证码是否正确
-        if(StringUtils.isEmpty(name)
-                || StringUtils.isEmpty(telphone)
-                || StringUtils.isEmpty(password)
-                || StringUtils.isEmpty(userCode)
-                || gender ==null
-                || age == null){
-            throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR);
-        }
+//        if(StringUtils.isEmpty(name)
+//                || StringUtils.isEmpty(telphone)
+//                || StringUtils.isEmpty(password)
+//                || StringUtils.isEmpty(userCode)
+//                || gender ==null
+//                || age == null){
+//            throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR);
+//        }
         String code = (String)httpServletRequest.getSession().getAttribute(telphone);
         if(!code.equals(userCode)){
             throw new BussinessException(EmBussinessError.PARAMETER_VALIDATION_ERROR,"验证码错误");

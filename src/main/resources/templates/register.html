@@ -37,7 +37,7 @@
         <label  class="sr-only">用户名</label>
         <input type="tel"  class="form-control" name="name" placeholder="用户名" required>
         <label  class="sr-only">手机号</label>
-        <input type="tel"  class="form-control" name="telphone" placeholder="请输入您的手机号" required>
+        <input type="tel"  class="form-control" readonly name="telphone" th:value="${telphone}" placeholder="请输入您的手机号" required>
         <label  class="sr-only">验证码</label>
         <input type="tel"  class="form-control" name="userCode" placeholder="请输入验证码" required>
         <label  class="sr-only">用户密码</label>
